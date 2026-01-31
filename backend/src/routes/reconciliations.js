@@ -17,6 +17,8 @@ reconciliationsRouter.get("/", async (req, res, next) => {
       status: req.query.status ?? null,
       prepaidAccountId: req.query.prepaidAccountId ?? null,
       prepaidAccount: req.query.prepaidAccount ?? null,
+      varianceMin: req.query.varianceMin ?? null,
+      varianceMax: req.query.varianceMax ?? null,
     };
     const list = reconciliationService.listReconciliations(filters, req.user);
     res.json({ reconciliations: list });
@@ -70,7 +72,7 @@ reconciliationsRouter.post(
   },
 );
 
-/** PATCH status (e.g. reopen with reason) – optional workflow. */
+/** PATCH status (e.g. REOPENED). Closure is determined by reconciliation formula only; do not allow setting CLOSED manually. */
 reconciliationsRouter.patch(
   "/:id",
   [
@@ -85,6 +87,11 @@ reconciliationsRouter.patch(
       );
       if (!rec)
         return res.status(404).json({ error: "Reconciliation not found" });
+      if (req.body.status === "CLOSED" || req.body.status === "AUTO_CLOSED")
+        return res.status(400).json({
+          error:
+            "Closure is determined by reconciliation formula only. Run reconciliation to update status; closure is allowed only when |variance| ≤ tolerance.",
+        });
       const store = getStore();
       const row = store.reconciliations.find((r) => r.id === req.params.id);
       if (req.body.status) row.status = req.body.status;

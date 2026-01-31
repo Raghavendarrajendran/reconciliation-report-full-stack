@@ -23,8 +23,20 @@ import { reportsRouter } from "./routes/reports.js";
 import { auditRouter } from "./routes/audit.js";
 import { settingsRouter } from "./routes/settings.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import swaggerUi from "swagger-ui-express";
+import openApiSpec from "./config/openapi.js";
 
 const app = express();
+
+// Swagger API documentation at /api/api-docs (no auth required for viewing)
+app.use(
+  "/api/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(openApiSpec, {
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Prepayment Reconciliation API",
+  }),
+);
 
 app.use(
   cors({

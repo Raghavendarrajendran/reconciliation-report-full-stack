@@ -1,0 +1,168 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Prepayment Reconciliation Platform API",
+    "description": "Complete prepayment reconciliation. Core flow: Upload Prepayment Schedule, PPREC, Trial Balance; run reconciliation per entity/period; view dashboard and propose adjustments. Canonical formula: Expected = Opening + Additions - Amortization +/- Adjustments; Actual = TB closing; Variance = Actual - Expected; Status = CLOSED if |Variance| <= Tolerance else OPEN. Closure is formula-only; closed reconciliations are locked.",
+    "version": "1.0.0",
+    "contact": { "name": "API Support" }
+  },
+  "servers": [
+    { "url": "/api", "description": "Same origin" },
+    { "url": "http://localhost:4000/api", "description": "Local backend" }
+  ],
+  "tags": [
+    { "name": "Auth", "description": "Login, refresh, me, logout" },
+    { "name": "Uploads", "description": "Excel upload (Schedule, PPREC, Trial Balance)" },
+    { "name": "Reconciliations", "description": "Run engine, list, get with evidence" },
+    { "name": "Adjustments", "description": "Maker-Checker" },
+    { "name": "Dashboards", "description": "Summary" },
+    { "name": "Masters", "description": "Entities, periods" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Use the accessToken from POST /auth/login"
+      }
+    }
+  },
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "security": [],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Tokens and user" } }
+      }
+    },
+    "/uploads/parse": {
+      "post": {
+        "tags": ["Uploads"],
+        "summary": "Parse Excel (no save)",
+        "responses": { "200": { "description": "sheets, sample" } }
+      }
+    },
+    "/uploads/schedule-file": {
+      "post": {
+        "tags": ["Uploads"],
+        "summary": "Upload Prepayment Schedule",
+        "responses": { "201": { "description": "Upload record" } }
+      }
+    },
+    "/uploads/trial-balance-file": {
+      "post": {
+        "tags": ["Uploads"],
+        "summary": "Upload Trial Balance",
+        "responses": { "201": { "description": "Upload record" } }
+      }
+    },
+    "/uploads/pprec-file": {
+      "post": {
+        "tags": ["Uploads"],
+        "summary": "Upload PPREC",
+        "responses": { "201": { "description": "Upload record" } }
+      }
+    },
+    "/uploads/schedule": {
+      "get": {
+        "tags": ["Uploads"],
+        "summary": "List Schedule uploads",
+        "responses": { "200": { "description": "uploads array" } }
+      }
+    },
+    "/uploads/trial-balance": {
+      "get": {
+        "tags": ["Uploads"],
+        "summary": "List Trial Balance uploads",
+        "responses": { "200": { "description": "uploads array" } }
+      }
+    },
+    "/uploads/pprec": {
+      "get": {
+        "tags": ["Uploads"],
+        "summary": "List PPREC uploads",
+        "responses": { "200": { "description": "uploads array" } }
+      }
+    },
+    "/reconciliations": {
+      "get": {
+        "tags": ["Reconciliations"],
+        "summary": "List reconciliations",
+        "responses": { "200": { "description": "reconciliations array" } }
+      }
+    },
+    "/reconciliations/run": {
+      "post": {
+        "tags": ["Reconciliations"],
+        "summary": "Run reconciliation engine",
+        "responses": { "200": { "description": "reconciliations array" } }
+      }
+    },
+    "/reconciliations/{id}": {
+      "get": {
+        "tags": ["Reconciliations"],
+        "summary": "Get reconciliation (optional evidence=true)",
+        "responses": { "200": { "description": "Reconciliation" } }
+      }
+    },
+    "/adjustments": {
+      "get": {
+        "tags": ["Adjustments"],
+        "summary": "List adjustments",
+        "responses": { "200": { "description": "adjustments array" } }
+      },
+      "post": {
+        "tags": ["Adjustments"],
+        "summary": "Propose adjustment (Maker)",
+        "responses": { "201": { "description": "Adjustment created" } }
+      }
+    },
+    "/dashboards/summary": {
+      "get": {
+        "tags": ["Dashboards"],
+        "summary": "Dashboard summary",
+        "responses": { "200": { "description": "Summary object" } }
+      }
+    },
+    "/entities": {
+      "get": {
+        "tags": ["Masters"],
+        "summary": "List entities",
+        "responses": { "200": { "description": "entities array" } }
+      }
+    },
+    "/periods": {
+      "get": {
+        "tags": ["Masters"],
+        "summary": "List fiscal periods",
+        "responses": { "200": { "description": "periods array" } }
+      }
+    }
+  }
+}

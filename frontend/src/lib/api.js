@@ -150,12 +150,38 @@ export const uploadsApi = {
             .then((d) => Promise.reject(new Error(d.error || r.statusText))),
     );
   },
+  savePprecFile: (file, { sheetName, entityId, periodId, fiscalYear } = {}) => {
+    const form = new FormData();
+    form.append("file", file);
+    if (sheetName) form.append("sheetName", sheetName);
+    if (entityId) form.append("entityId", entityId);
+    if (periodId) form.append("periodId", periodId);
+    if (fiscalYear != null && fiscalYear !== "")
+      form.append("fiscalYear", fiscalYear);
+    return fetch(API_BASE + "/uploads/pprec-file", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + getToken() },
+      body: form,
+      credentials: "include",
+    }).then((r) =>
+      r.ok
+        ? r.json()
+        : r
+            .json()
+            .then((d) => Promise.reject(new Error(d.error || r.statusText))),
+    );
+  },
   listSchedule: (params) =>
     api("/uploads/schedule?" + new URLSearchParams(params || {}).toString()),
+  getSchedule: (id) => api("/uploads/schedule/" + id),
   listTrialBalance: (params) =>
     api(
       "/uploads/trial-balance?" + new URLSearchParams(params || {}).toString(),
     ),
+  getTrialBalance: (id) => api("/uploads/trial-balance/" + id),
+  listPprec: (params) =>
+    api("/uploads/pprec?" + new URLSearchParams(params || {}).toString()),
+  getPprec: (id) => api("/uploads/pprec/" + id),
 };
 
 export const reconciliationsApi = {

@@ -57,7 +57,7 @@ Deploy **frontend and API together** from the repo root (single project):
 - **Auth & RBAC**: JWT login/refresh, roles (App Administrator, Admin, Entity User, Maker, Checker, Auditor), route guards, entity-scoped access
 - **Theme**: Dark / Light / System, persisted in IndexedDB and optional backend settings
 - **Master Data**: Entities, GL Accounts, Prepaid/Expense mappings, Fiscal Periods, tolerance (admin)
-- **Excel Upload**: Prepayment Schedule and Trial Balance; sheet/column mapping, validation preview, versioning
+- **Excel Upload**: Prepayment Schedule, PPREC, and Trial Balance; sheet/column mapping, validation preview, versioning. **Upload Center** lists all uploaded files and lets you **view** parsed Excel data (Schedule, TB, PPREC tabs and “View data” per upload).
 - **Reconciliation Engine**: Expected Closing = Opening + New Prepayments − Amortization; compare with TB; status: AUTO_CLOSED, OPEN, PENDING_CHECKER, CLOSED, REOPENED
 - **Adjustments**: Maker proposes (debit/credit, explanation); Checker approves/rejects (no self-approval, mandatory comments on reject)
 - **Dashboards**: Role-aware summary (by status, pending approvals)
@@ -83,6 +83,15 @@ Deploy **frontend and API together** from the repo root (single project):
 - `GET /api/audit`, `GET/PATCH /api/settings`
 
 See `docs/API-SAMPLES.md` for curl examples.
+
+### Swagger API documentation
+
+Interactive API docs (OpenAPI 3.0) are available at:
+
+- **Local**: [http://localhost:4000/api/api-docs](http://localhost:4000/api/api-docs) (with backend running)
+- **In-app**: Use the **API Docs** link in the header (opens in a new tab)
+
+The Swagger UI includes descriptions of the canonical reconciliation formula, all upload and reconciliation endpoints, adjustments, dashboards, and masters. Use **Authorize** with your JWT (from login) to try endpoints.
 
 ## Non-Negotiables
 

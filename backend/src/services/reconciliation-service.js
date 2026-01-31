@@ -32,6 +32,15 @@ export function listReconciliations(filters = {}, user) {
       (r) =>
         (r.prepaidAccount ?? r.prepaidAccountId) === filters.prepaidAccount,
     );
+  const v = (r) => Number(r.variance);
+  if (filters.varianceMin != null && filters.varianceMin !== "")
+    list = list.filter(
+      (r) => r.variance != null && v(r) >= Number(filters.varianceMin),
+    );
+  if (filters.varianceMax != null && filters.varianceMax !== "")
+    list = list.filter(
+      (r) => r.variance != null && v(r) <= Number(filters.varianceMax),
+    );
   if (
     user &&
     user.role !== ROLES.APP_ADMINISTRATOR &&

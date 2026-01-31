@@ -4,18 +4,41 @@ import { Link, useSearchParams } from "react-router-dom";
 import { reconciliationsApi, entitiesApi, periodsApi } from "../lib/api";
 
 export function Reconciliations() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const entityId = searchParams.get("entityId") || "";
   const periodId = searchParams.get("periodId") || "";
   const status = searchParams.get("status") || "";
+  const varianceMin = searchParams.get("varianceMin") ?? "";
+  const varianceMax = searchParams.get("varianceMax") ?? "";
   const [runEntityId, setRunEntityId] = useState("");
   const [runPeriodId, setRunPeriodId] = useState("");
   const [runFiscalYear, setRunFiscalYear] = useState("");
   const queryClient = useQueryClient();
 
+  const setFilter = (key, value) => {
+    const next = new URLSearchParams(searchParams);
+    if (value === "" || value == null) next.delete(key);
+    else next.set(key, value);
+    setSearchParams(next);
+  };
+
   const { data, isLoading } = useQuery({
-    queryKey: ["reconciliations", entityId, periodId, status],
-    queryFn: () => reconciliationsApi.list({ entityId, periodId, status }),
+    queryKey: [
+      "reconciliations",
+      entityId,
+      periodId,
+      status,
+      varianceMin,
+      varianceMax,
+    ],
+    queryFn: () =>
+      reconciliationsApi.list({
+        entityId: entityId || undefined,
+        periodId: periodId || undefined,
+        status: status || undefined,
+        varianceMin: varianceMin !== "" ? varianceMin : undefined,
+        varianceMax: varianceMax !== "" ? varianceMax : undefined,
+      }),
   });
   const { data: entitiesData } = useQuery({
     queryKey: ["entities"],
@@ -53,88 +76,195 @@ export function Reconciliations() {
       >
         Reconciliations
       </h1>
-      <div className="card-soft flex flex-wrap items-end gap-3 p-4">
-        <label className="flex flex-col gap-1">
-          <span
-            className="text-xs font-medium"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            Entity
-          </span>
-          <select
-            value={runEntityId}
-            onChange={(e) => setRunEntityId(e.target.value)}
-            className="input-soft w-48"
-          >
-            <option value="">Select entity</option>
-            {entities.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name || e.code}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
-          <span
-            className="text-xs font-medium"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            Period
-          </span>
-          <select
-            value={runPeriodId}
-            onChange={(e) => setRunPeriodId(e.target.value)}
-            className="input-soft w-48"
-          >
-            <option value="">Select period</option>
-            {periods.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name || p.code}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
-          <span
-            className="text-xs font-medium"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            Fiscal year (optional)
-          </span>
-          <input
-            type="text"
-            value={runFiscalYear}
-            onChange={(e) => setRunFiscalYear(e.target.value)}
-            placeholder="e.g. 2024"
-            className="input-soft w-32"
-          />
-        </label>
-        <button
-          type="button"
-          onClick={() =>
-            runMutation.mutate({
-              entityId: runEntityId,
-              periodId: runPeriodId,
-              fiscalYear: runFiscalYear || undefined,
-            })
-          }
-          disabled={!runEntityId || !runPeriodId || runMutation.isPending}
-          className="btn-primary"
+      <div className="card-soft p-4 space-y-4">
+        <h3
+          className="text-sm font-semibold"
+          style={{ color: "var(--text-primary)" }}
         >
-          {runMutation.isPending ? "Running…" : "Run reconciliation"}
-        </button>
-        {runMessage && (
-          <p
-            className="w-full text-sm"
-            style={{
-              color: runMessage.includes("No reconciliations")
-                ? "var(--text-secondary)"
-                : "var(--text-primary)",
-            }}
+          Run reconciliation
+        </h3>
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex flex-col gap-1">
+            <span
+              className="text-xs font-medium"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Entity
+            </span>
+            <select
+              value={runEntityId}
+              onChange={(e) => setRunEntityId(e.target.value)}
+              className="input-soft w-48"
+            >
+              <option value="">Select entity</option>
+              {entities.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name || e.code}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span
+              className="text-xs font-medium"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Period
+            </span>
+            <select
+              value={runPeriodId}
+              onChange={(e) => setRunPeriodId(e.target.value)}
+              className="input-soft w-48"
+            >
+              <option value="">Select period</option>
+              {periods.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name || p.code}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span
+              className="text-xs font-medium"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Fiscal year (optional)
+            </span>
+            <input
+              type="text"
+              value={runFiscalYear}
+              onChange={(e) => setRunFiscalYear(e.target.value)}
+              placeholder="e.g. 2024"
+              className="input-soft w-32"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() =>
+              runMutation.mutate({
+                entityId: runEntityId,
+                periodId: runPeriodId,
+                fiscalYear: runFiscalYear || undefined,
+              })
+            }
+            disabled={!runEntityId || !runPeriodId || runMutation.isPending}
+            className="btn-primary"
           >
-            {runMessage}
-          </p>
-        )}
+            {runMutation.isPending ? "Running…" : "Run reconciliation"}
+          </button>
+          {runMessage && (
+            <p
+              className="w-full text-sm"
+              style={{
+                color: runMessage.includes("No reconciliations")
+                  ? "var(--text-secondary)"
+                  : "var(--text-primary)",
+              }}
+            >
+              {runMessage}
+            </p>
+          )}
+        </div>
+        <div className="border-t pt-4" style={{ borderColor: "var(--border)" }}>
+          <h3
+            className="text-sm font-semibold mb-2"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Filters
+          </h3>
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="flex flex-col gap-1">
+              <span
+                className="text-xs font-medium"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Entity
+              </span>
+              <select
+                value={entityId}
+                onChange={(e) => setFilter("entityId", e.target.value)}
+                className="input-soft w-40"
+              >
+                <option value="">All</option>
+                {entities.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name || e.code}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1">
+              <span
+                className="text-xs font-medium"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Period
+              </span>
+              <select
+                value={periodId}
+                onChange={(e) => setFilter("periodId", e.target.value)}
+                className="input-soft w-40"
+              >
+                <option value="">All</option>
+                {periods.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name || p.code}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1">
+              <span
+                className="text-xs font-medium"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Status
+              </span>
+              <select
+                value={status}
+                onChange={(e) => setFilter("status", e.target.value)}
+                className="input-soft w-40"
+              >
+                <option value="">All</option>
+                <option value="OPEN">OPEN</option>
+                <option value="CLOSED">CLOSED</option>
+                <option value="PENDING_CHECKER">PENDING_CHECKER</option>
+                <option value="REOPENED">REOPENED</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1">
+              <span
+                className="text-xs font-medium"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Variance min
+              </span>
+              <input
+                type="number"
+                value={varianceMin}
+                onChange={(e) => setFilter("varianceMin", e.target.value)}
+                placeholder="—"
+                className="input-soft w-28 tabular-nums"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span
+                className="text-xs font-medium"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Variance max
+              </span>
+              <input
+                type="number"
+                value={varianceMax}
+                onChange={(e) => setFilter("varianceMax", e.target.value)}
+                placeholder="—"
+                className="input-soft w-28 tabular-nums"
+              />
+            </label>
+          </div>
+        </div>
       </div>
       {recs.length === 0 && !runMessage && (
         <div

@@ -86,6 +86,11 @@ export function proposeAdjustment(
   );
   if (!rec)
     throw Object.assign(new Error("Reconciliation not found"), { status: 404 });
+  if (rec.status === RECONCILIATION_STATUS.CLOSED)
+    throw Object.assign(
+      new Error("Reconciliation is closed and locked; no new adjustments."),
+      { status: 400 },
+    );
   const amt =
     Number(amount) ?? Number(debitAmount) ?? Number(creditAmount) ?? 0;
   if (amt <= 0)

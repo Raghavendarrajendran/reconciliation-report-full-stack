@@ -83,6 +83,9 @@ export function buildEvidence(reconciliationId) {
       detail: duplicateIds,
     });
 
+  const pprecLine = pprecValues?.lineId
+    ? pprecLines.find((l) => l.id === pprecValues.lineId)
+    : null;
   return {
     reconciliationId,
     sourceTbRow: tbResult
@@ -102,6 +105,7 @@ export function buildEvidence(reconciliationId) {
           lineId: pprecValues.lineId,
         }
       : null,
+    pprecLines: pprecLine ? [pprecLine] : [],
     scheduleLinesContributing: (scheduleResult.lines || []).map((l) => ({
       id: l.id,
       account: l.account,

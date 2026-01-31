@@ -105,6 +105,14 @@ export function Layout() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
+            <a
+              href={(import.meta.env.VITE_API_URL || "") + "/api/api-docs"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+            >
+              API Docs
+            </a>
             <select
               value={theme}
               onChange={(e) => setTheme(e.target.value)}

@@ -35,6 +35,9 @@ export function toScheduleLine(row, index, uploadId) {
   const account = s(
     pick(row, "account", "account_code", "accountcode", "gl_account"),
   );
+  const expenseAccount = s(
+    pick(row, "expense_account", "expenseaccount", "expense_account_code"),
+  );
   const accountDesc = s(
     pick(row, "account_desc", "accountdesc", "account_description"),
   );
@@ -53,6 +56,7 @@ export function toScheduleLine(row, index, uploadId) {
     recurLine,
     headerDesc,
     account,
+    expenseAccount: expenseAccount ?? null,
     accountDesc,
     debitAmount,
     creditAmount,

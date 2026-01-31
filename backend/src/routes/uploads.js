@@ -279,3 +279,28 @@ uploadsRouter.get("/trial-balance/:id", async (req, res, next) => {
     next(e);
   }
 });
+
+uploadsRouter.get("/pprec", async (req, res, next) => {
+  try {
+    const entityId = req.query.entityId ?? null;
+    const periodId = req.query.periodId ?? null;
+    if (entityId && !canAccessEntity(req.user, entityId))
+      return res.status(403).json({ error: "Access denied" });
+    const list = uploadService.listPprecUploads(entityId, periodId);
+    res.json({ uploads: list });
+  } catch (e) {
+    next(e);
+  }
+});
+
+uploadsRouter.get("/pprec/:id", async (req, res, next) => {
+  try {
+    const record = uploadService.getPprecUpload(req.params.id);
+    if (!record) return res.status(404).json({ error: "Not found" });
+    if (record.entityId && !canAccessEntity(req.user, record.entityId))
+      return res.status(403).json({ error: "Access denied" });
+    res.json(record);
+  } catch (e) {
+    next(e);
+  }
+});

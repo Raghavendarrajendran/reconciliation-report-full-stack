@@ -24,8 +24,26 @@ dashboardsRouter.get("/summary", async (req, res, next) => {
       recs = recs.filter((r) => req.user.entityIds.includes(r.entityId));
     }
     const byStatus = {};
+    let varianceTotalOpen = 0;
+    let varianceTotalClosed = 0;
+    const byEntity = {};
+    const byPeriod = {};
     recs.forEach((r) => {
       byStatus[r.status] = (byStatus[r.status] || 0) + 1;
+      const v = Number(r.variance) || 0;
+      if (
+        r.status === "OPEN" ||
+        r.status === "REOPENED" ||
+        r.status === "PENDING_CHECKER"
+      ) {
+        varianceTotalOpen += v;
+      } else {
+        varianceTotalClosed += v;
+      }
+      const eid = r.entityId ?? "_";
+      byEntity[eid] = (byEntity[eid] || 0) + 1;
+      const pid = r.periodId ?? "_";
+      byPeriod[pid] = (byPeriod[pid] || 0) + 1;
     });
     const pendingApprovals = store.adjustmentEntries.filter(
       (a) => !a.deletedAt && a.status === "PENDING_APPROVAL",
@@ -34,6 +52,12 @@ dashboardsRouter.get("/summary", async (req, res, next) => {
       byStatus,
       total: recs.length,
       pendingApprovals,
+      varianceTotals: {
+        openSum: varianceTotalOpen,
+        closedSum: varianceTotalClosed,
+      },
+      byEntity,
+      byPeriod,
       entityId,
       periodId,
     });
