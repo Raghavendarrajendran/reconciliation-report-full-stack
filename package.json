@@ -1,6 +1,7 @@
 {
   "name": "reconciliation-report-full-stack",
   "private": true,
+  "type": "module",
   "description": "Prepayment Reconciliation Platform – full-stack (frontend + API)",
   "scripts": {
     "build": "npm run build --workspace=frontend",
