@@ -32,10 +32,13 @@ export function ReconciliationDetail() {
     queryKey: ["adjustments", id],
     queryFn: () => adjustmentsApi.list({ reconciliationId: id }),
   });
-  const canViewAudit = ["APP_ADMINISTRATOR", "ADMIN", "AUDITOR"].includes(user?.role);
+  const canViewAudit = ["APP_ADMINISTRATOR", "ADMIN", "AUDITOR"].includes(
+    user?.role,
+  );
   const { data: auditData } = useQuery({
     queryKey: ["audit", id],
-    queryFn: () => auditApi.list({ resourceId: id, resource: "reconciliation", limit: 50 }),
+    queryFn: () =>
+      auditApi.list({ resourceId: id, resource: "reconciliation", limit: 50 }),
     enabled: canViewAudit && evidenceTab === "Audit",
   });
 
@@ -81,7 +84,13 @@ export function ReconciliationDetail() {
             type="button"
             onClick={() => {
               const blob = new Blob(
-                [JSON.stringify({ reconciliation: rec, evidence: rec.evidence }, null, 2)],
+                [
+                  JSON.stringify(
+                    { reconciliation: rec, evidence: rec.evidence },
+                    null,
+                    2,
+                  ),
+                ],
                 { type: "application/json" },
               );
               const a = document.createElement("a");
@@ -91,7 +100,10 @@ export function ReconciliationDetail() {
               URL.revokeObjectURL(a.href);
             }}
             className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700"
-            style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}
+            style={{
+              borderColor: "var(--border)",
+              color: "var(--text-primary)",
+            }}
           >
             Export evidence
           </button>
@@ -117,104 +129,123 @@ export function ReconciliationDetail() {
         >
           Accounting story & evidence
         </h2>
-        <div className="mb-4 flex flex-wrap gap-1 border-b pb-2" style={{ borderColor: "var(--border)" }}>
-          {EVIDENCE_TABS.filter((t) => t !== "Audit" || canViewAudit).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setEvidenceTab(tab)}
-              className={`rounded px-3 py-1.5 text-sm font-medium ${
-                evidenceTab === tab
-                  ? "bg-sky-600 text-white dark:bg-sky-500"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        <div
+          className="mb-4 flex flex-wrap gap-1 border-b pb-2"
+          style={{ borderColor: "var(--border)" }}
+        >
+          {EVIDENCE_TABS.filter((t) => t !== "Audit" || canViewAudit).map(
+            (tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setEvidenceTab(tab)}
+                className={`rounded px-3 py-1.5 text-sm font-medium ${
+                  evidenceTab === tab
+                    ? "bg-sky-600 text-white dark:bg-sky-500"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
+                }`}
+              >
+                {tab}
+              </button>
+            ),
+          )}
         </div>
 
         {evidenceTab === "Story" && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Card title="Expected closing calculation">
-            <ul className="space-y-1 text-sm">
-              <li>
-                Opening balance:{" "}
-                <strong className="tabular-nums">
-                  {Number(rec.openingBalance).toLocaleString()}
-                </strong>
-              </li>
-              <li>
-                Additions:{" "}
-                <strong className="tabular-nums">
-                  + {Number(rec.additions).toLocaleString()}
-                </strong>
-              </li>
-              <li>
-                Amortization:{" "}
-                <strong className="tabular-nums">
-                  − {Number(rec.amortization).toLocaleString()}
-                </strong>
-              </li>
-              {formula?.adjustmentImpact != null &&
-                Number(formula.adjustmentImpact) !== 0 && (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Card title="Expected closing calculation">
+                <ul className="space-y-1 text-sm">
                   <li>
-                    Adjustment impact:{" "}
+                    Opening balance:{" "}
                     <strong className="tabular-nums">
-                      {Number(formula.adjustmentImpact) >= 0 ? "+ " : ""}
-                      {Number(formula.adjustmentImpact).toLocaleString()}
+                      {Number(rec.openingBalance).toLocaleString()}
                     </strong>
                   </li>
+                  <li>
+                    Additions:{" "}
+                    <strong className="tabular-nums">
+                      + {Number(rec.additions).toLocaleString()}
+                    </strong>
+                  </li>
+                  <li>
+                    Amortization:{" "}
+                    <strong className="tabular-nums">
+                      − {Number(rec.amortization).toLocaleString()}
+                    </strong>
+                  </li>
+                  {formula?.adjustmentImpact != null &&
+                    Number(formula.adjustmentImpact) !== 0 && (
+                      <li>
+                        Adjustment impact:{" "}
+                        <strong className="tabular-nums">
+                          {Number(formula.adjustmentImpact) >= 0 ? "+ " : ""}
+                          {Number(formula.adjustmentImpact).toLocaleString()}
+                        </strong>
+                      </li>
+                    )}
+                  <li
+                    className="border-t pt-2"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    Expected closing{" "}
+                    {formula?.expectedClosingAdjusted != null
+                      ? "(adjusted)"
+                      : ""}
+                    :{" "}
+                    <strong className="tabular-nums">
+                      {Number(expectedDisplay).toLocaleString()}
+                    </strong>
+                  </li>
+                </ul>
+              </Card>
+              <Card title="Trial balance (actual)">
+                {evidence?.sourceTbRow ? (
+                  <div className="text-sm">
+                    <p>
+                      Account: <strong>{evidence.sourceTbRow.account}</strong>
+                    </p>
+                    <p className="tabular-nums">
+                      Closing balance:{" "}
+                      <strong>
+                        {Number(
+                          evidence.sourceTbRow.closingBalanceSigned,
+                        ).toLocaleString()}
+                      </strong>
+                    </p>
+                  </div>
+                ) : (
+                  <p
+                    className="text-sm"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    No TB row used (missing).
+                  </p>
                 )}
-              <li
-                className="border-t pt-2"
-                style={{ borderColor: "var(--border)" }}
-              >
-                Expected closing{" "}
-                {formula?.expectedClosingAdjusted != null ? "(adjusted)" : ""}:{" "}
-                <strong className="tabular-nums">
-                  {Number(expectedDisplay).toLocaleString()}
-                </strong>
-              </li>
-            </ul>
-          </Card>
-          <Card title="Trial balance (actual)">
-            {evidence?.sourceTbRow ? (
-              <div className="text-sm">
-                <p>
-                  Account: <strong>{evidence.sourceTbRow.account}</strong>
+              </Card>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-4">
+              <Card title="Variance" className="flex-1 min-w-[200px]">
+                <p className="text-lg tabular-nums">
+                  Actual − Expected ={" "}
+                  {rec.variance != null
+                    ? Number(rec.variance).toLocaleString()
+                    : rec.actualClosing != null && expectedDisplay != null
+                      ? Number(
+                          rec.actualClosing - expectedDisplay,
+                        ).toLocaleString()
+                      : "—"}
                 </p>
-                <p className="tabular-nums">
-                  Closing balance:{" "}
-                  <strong>
-                    {Number(
-                      evidence.sourceTbRow.closingBalanceSigned,
-                    ).toLocaleString()}
-                  </strong>
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Tolerance used:{" "}
+                  {Number(rec.toleranceUsed ?? 0).toLocaleString()}
                 </p>
-              </div>
-            ) : (
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                No TB row used (missing).
-              </p>
-            )}
-          </Card>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-4">
-          <Card title="Variance" className="flex-1 min-w-[200px]">
-            <p className="text-lg tabular-nums">
-              Actual − Expected ={" "}
-              {rec.variance != null
-                ? Number(rec.variance).toLocaleString()
-                : rec.actualClosing != null && expectedDisplay != null
-                  ? Number(rec.actualClosing - expectedDisplay).toLocaleString()
-                  : "—"}
-            </p>
-            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-              Tolerance used: {Number(rec.toleranceUsed ?? 0).toLocaleString()}
-            </p>
-          </Card>
-        </div>
+              </Card>
+            </div>
+          </>
         )}
 
         {evidenceTab === "Schedule" && (
@@ -234,9 +265,15 @@ export function ReconciliationDetail() {
                   <tbody>
                     {evidence.scheduleLinesContributing.map((line) => (
                       <tr key={line.id}>
-                        <td style={{ color: "var(--text-primary)" }}>{line.account}</td>
-                        <td className="tabular-nums">{Number(line.creditAmount).toLocaleString()}</td>
-                        <td className="tabular-nums">{Number(line.debitAmount).toLocaleString()}</td>
+                        <td style={{ color: "var(--text-primary)" }}>
+                          {line.account}
+                        </td>
+                        <td className="tabular-nums">
+                          {Number(line.creditAmount).toLocaleString()}
+                        </td>
+                        <td className="tabular-nums">
+                          {Number(line.debitAmount).toLocaleString()}
+                        </td>
                         <td>{line.applyDate ?? "—"}</td>
                         <td>{line.headerDesc ?? "—"}</td>
                       </tr>
@@ -246,7 +283,8 @@ export function ReconciliationDetail() {
               </div>
             ) : (
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                No schedule lines used for this reconciliation (amortization from PPREC or none).
+                No schedule lines used for this reconciliation (amortization
+                from PPREC or none).
               </p>
             )}
           </Card>
@@ -269,11 +307,26 @@ export function ReconciliationDetail() {
                   <tbody>
                     {evidence.pprecLines.map((line) => (
                       <tr key={line.id}>
-                        <td style={{ color: "var(--text-primary)" }}>{line.prepaidAccount}</td>
-                        <td className="tabular-nums">{Number(line.openingBalance).toLocaleString()}</td>
-                        <td className="tabular-nums">{Number(line.additions).toLocaleString()}</td>
-                        <td className="tabular-nums">{Number(line.amortization).toLocaleString()}</td>
-                        <td className="tabular-nums">{Number(line.expectedClosing ?? (line.openingBalance + line.additions - line.amortization)).toLocaleString()}</td>
+                        <td style={{ color: "var(--text-primary)" }}>
+                          {line.prepaidAccount}
+                        </td>
+                        <td className="tabular-nums">
+                          {Number(line.openingBalance).toLocaleString()}
+                        </td>
+                        <td className="tabular-nums">
+                          {Number(line.additions).toLocaleString()}
+                        </td>
+                        <td className="tabular-nums">
+                          {Number(line.amortization).toLocaleString()}
+                        </td>
+                        <td className="tabular-nums">
+                          {Number(
+                            line.expectedClosing ??
+                              line.openingBalance +
+                                line.additions -
+                                line.amortization,
+                          ).toLocaleString()}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -281,7 +334,8 @@ export function ReconciliationDetail() {
               </div>
             ) : (
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                No PPREC row used for this account/period. Opening, additions, and amortization may come from schedule or be zero.
+                No PPREC row used for this account/period. Opening, additions,
+                and amortization may come from schedule or be zero.
               </p>
             )}
           </Card>
@@ -291,12 +345,20 @@ export function ReconciliationDetail() {
           <Card title="Trial balance (actual closing)">
             {evidence?.sourceTbRow ? (
               <div className="text-sm">
-                <p><strong>Account:</strong> {evidence.sourceTbRow.account}</p>
-                <p className="tabular-nums mt-1"><strong>Closing balance:</strong> {Number(evidence.sourceTbRow.closingBalanceSigned).toLocaleString()}</p>
+                <p>
+                  <strong>Account:</strong> {evidence.sourceTbRow.account}
+                </p>
+                <p className="tabular-nums mt-1">
+                  <strong>Closing balance:</strong>{" "}
+                  {Number(
+                    evidence.sourceTbRow.closingBalanceSigned,
+                  ).toLocaleString()}
+                </p>
               </div>
             ) : (
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                No Trial Balance row found for this account and period (missing TB).
+                No Trial Balance row found for this account and period (missing
+                TB).
               </p>
             )}
           </Card>
@@ -305,13 +367,18 @@ export function ReconciliationDetail() {
         {evidenceTab === "Warnings" && (
           <Card title="Warnings">
             {(evidence?.warnings?.length ?? 0) > 0 ? (
-              <ul className="list-disc pl-4 text-sm" style={{ color: "var(--text-secondary)" }}>
+              <ul
+                className="list-disc pl-4 text-sm"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {evidence.warnings.map((w, i) => (
                   <li key={i}>{w.message}</li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>No warnings.</p>
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                No warnings.
+              </p>
             )}
           </Card>
         )}
@@ -322,15 +389,22 @@ export function ReconciliationDetail() {
               <ul className="space-y-2 text-sm">
                 {auditLogs.map((entry) => (
                   <li key={entry.id} className="flex flex-wrap gap-2">
-                    <span style={{ color: "var(--text-secondary)" }}>{entry.timestamp}</span>
-                    <span style={{ color: "var(--text-primary)" }}>{entry.action}</span>
-                    {entry.metadata?.comment && <span>{entry.metadata.comment}</span>}
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      {entry.timestamp}
+                    </span>
+                    <span style={{ color: "var(--text-primary)" }}>
+                      {entry.action}
+                    </span>
+                    {entry.metadata?.comment && (
+                      <span>{entry.metadata.comment}</span>
+                    )}
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                No audit entries for this reconciliation. Adjustments and approvals are listed in the Adjustments section below.
+                No audit entries for this reconciliation. Adjustments and
+                approvals are listed in the Adjustments section below.
               </p>
             )}
           </Card>

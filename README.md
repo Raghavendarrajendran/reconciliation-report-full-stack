@@ -52,6 +52,10 @@ Deploy **frontend and API together** from the repo root (single project):
 
 **Alternative – frontend-only deploy:** Set Root Directory to `frontend` and use `frontend/vercel.json`. Then run the backend elsewhere and set `VITE_API_URL` to the API base URL in the frontend project’s env.
 
+**Node version:** The project pins Node `20.x` in `package.json` engines (and `.nvmrc`) so Vercel and local builds use the same version. This removes the “engines will auto-upgrade” warning.
+
+**Build warning “1 high severity vulnerability”:** If Vercel reports an npm vulnerability during install, the build usually still succeeds. To fix: run `npm audit` (or `npm audit fix`) at the repo root locally and commit any dependency updates; or ignore if the advisory is in a dev-only or transitive dependency you accept.
+
 ## Features
 
 - **Auth & RBAC**: JWT login/refresh, roles (App Administrator, Admin, Entity User, Maker, Checker, Auditor), route guards, entity-scoped access
