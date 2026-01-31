@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* Use class-based dark mode so app theme (Light/Dark dropdown) overrides OS preference */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --color-surface: #f1f5f9;
+  --color-surface-dark: #1e293b;
+  --color-primary: #0369a1;
+  --color-primary-light: #0c4a6e;
+  --color-accent: #0891b2;
+  --color-success: #15803d;
+  --color-warning: #ca8a04;
+  --color-danger: #dc2626;
+}
+
+:root {
+  --bg-page: #f1f5f9;
+  --bg-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border: #e2e8f0;
+  --focus-ring: #0369a1;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+.dark {
+  --bg-page: #0f172a;
+  --bg-card: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border: #334155;
+  --focus-ring: #38bdf8;
+}
+
+html {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Card and input styling */
+.input-soft {
+  @apply rounded-lg border bg-white px-3 py-2 text-sm transition-colors;
+  border-color: var(--border);
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+.input-soft:focus {
+  outline: none;
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.15);
+}
+.dark .input-soft:focus {
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.btn-primary {
+  @apply rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors;
+  background: #0369a1;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #075985;
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.card-soft {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.dark .card-soft {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.table-soft th {
+  @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider;
+  color: var(--text-secondary);
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border);
+}
+.table-soft td {
+  @apply px-4 py-3 text-sm;
+  border-bottom: 1px solid var(--border);
+}
+.table-soft tbody tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+.dark .table-soft tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
