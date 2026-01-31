@@ -45,6 +45,15 @@ export function toScheduleLine(row, index, uploadId) {
   const creditAmount =
     n(pick(row, "credit_amount", "creditamount", "credit")) ?? 0;
   const amountSigned = debitAmount - creditAmount;
+  const prepaidStartYear = s(
+    pick(
+      row,
+      "prepaid_start_year",
+      "prepaidstartyear",
+      "start_year",
+      "orig_year",
+    ),
+  );
   return {
     id: uuidv4(),
     uploadId: uploadId ?? null,
@@ -61,6 +70,7 @@ export function toScheduleLine(row, index, uploadId) {
     debitAmount,
     creditAmount,
     amountSigned,
+    prepaidStartYear: prepaidStartYear ?? fiscalYear ?? null,
     _rowIndex: index,
   };
 }

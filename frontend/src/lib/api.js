@@ -219,6 +219,11 @@ export const adjustmentsApi = {
 export const dashboardsApi = {
   summary: (params) =>
     api("/dashboards/summary?" + new URLSearchParams(params || {}).toString()),
+  reconciliationTable: (params) =>
+    api(
+      "/dashboards/reconciliation-table?" +
+        new URLSearchParams(params || {}).toString(),
+    ),
   listConfigs: () => api("/dashboards/configs"),
   saveConfig: (body) =>
     api("/dashboards/configs", { method: "POST", body: JSON.stringify(body) }),

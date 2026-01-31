@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -14,22 +15,116 @@ const statusColors = {
     "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
 };
 
+const COLUMNS = [
+  {
+    key: "beginIn2021Prepaid",
+    label: "Begin in 2021 Prepaid",
+    className: "text-right tabular-nums",
+  },
+  {
+    key: "beginIn2022Prepaid",
+    label: "Begin in 2022 Prepaid",
+    className: "text-right tabular-nums",
+  },
+  {
+    key: "beginIn2023Prepaid",
+    label: "Begin in 2023 Prepaid",
+    className: "text-right tabular-nums",
+  },
+  {
+    key: "beginIn2024Prepaid",
+    label: "Begin in 2024 Prepaid",
+    className: "text-right tabular-nums",
+  },
+  {
+    key: "beginIn2025Prepaid",
+    label: "Begin in 2025 Prepaid",
+    className: "text-right tabular-nums",
+  },
+  {
+    key: "totalSubsystem",
+    label: "Total Subsystem as on Today",
+    className: "text-right tabular-nums font-medium",
+  },
+  {
+    key: "glBalance",
+    label: "GL Balance as on Report Date",
+    className: "text-right tabular-nums",
+  },
+  {
+    key: "difference",
+    label: "Difference",
+    className: "text-right tabular-nums",
+  },
+  {
+    key: "reconEntries",
+    label: "Recon Entries",
+    className: "text-right tabular-nums",
+  },
+  {
+    key: "finalDifference",
+    label: "Final Difference",
+    className: "text-right tabular-nums font-medium",
+  },
+  { key: "status", label: "Status", className: "text-center" },
+];
+
+function fmt(num) {
+  if (num == null || num === "") return "—";
+  const n = Number(num);
+  if (Number.isNaN(n)) return "—";
+  return n.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
 export function Dashboard() {
   const { user } = useAuth();
-  const { data, isLoading } = useQuery({
-    queryKey: ["dashboard-summary"],
-    queryFn: () => dashboardsApi.summary({}),
+  const [entityFilter, setEntityFilter] = useState("");
+  const [periodFilter, setPeriodFilter] = useState("");
+  const [expandedEntities, setExpandedEntities] = useState(new Set());
+
+  const { data: summaryData, isLoading: summaryLoading } = useQuery({
+    queryKey: ["dashboard-summary", entityFilter, periodFilter],
+    queryFn: () =>
+      dashboardsApi.summary({
+        ...(entityFilter && { entityId: entityFilter }),
+        ...(periodFilter && { periodId: periodFilter }),
+      }),
   });
 
-  if (isLoading)
+  const { data: tableData, isLoading: tableLoading } = useQuery({
+    queryKey: ["dashboard-reconciliation-table", entityFilter, periodFilter],
+    queryFn: () =>
+      dashboardsApi.reconciliationTable({
+        ...(entityFilter && { entityId: entityFilter }),
+        ...(periodFilter && { periodId: periodFilter }),
+      }),
+  });
+
+  const toggleEntity = (eid) => {
+    setExpandedEntities((prev) => {
+      const next = new Set(prev);
+      if (next.has(eid)) next.delete(eid);
+      else next.add(eid);
+      return next;
+    });
+  };
+
+  if (summaryLoading)
     return <div className="text-slate-500">Loading dashboard...</div>;
 
-  const byStatus = data?.byStatus ?? {};
-  const total = data?.total ?? 0;
-  const pendingApprovals = data?.pendingApprovals ?? 0;
-  const varianceTotals = data?.varianceTotals ?? {};
-  const byEntity = data?.byEntity ?? {};
-  const byPeriod = data?.byPeriod ?? {};
+  const byStatus = summaryData?.byStatus ?? {};
+  const total = summaryData?.total ?? 0;
+  const pendingApprovals = summaryData?.pendingApprovals ?? 0;
+  const varianceTotals = summaryData?.varianceTotals ?? {};
+  const byEntity = summaryData?.byEntity ?? {};
+  const byPeriod = summaryData?.byPeriod ?? {};
+
+  const byEntityTable = tableData?.byEntity ?? {};
+  const entityIds =
+    tableData?.entities ?? Object.keys(byEntityTable).filter((k) => k !== "_");
 
   return (
     <div className="space-y-6">
@@ -93,6 +188,146 @@ export function Dashboard() {
               </Link>
             )}
         </div>
+      </div>
+
+      {/* Reconciliation table: one section per entity */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+        <h2 className="p-4 text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700">
+          Reconciliation by Entity
+        </h2>
+        {tableLoading ? (
+          <div className="p-6 text-slate-500">
+            Loading reconciliation table...
+          </div>
+        ) : entityIds.length === 0 ? (
+          <div className="p-6 text-slate-500">
+            No reconciliation data. Upload Prepayment Schedule, PPREC, and Trial
+            Balance; then run reconciliation per entity/period.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-200 dark:divide-slate-700">
+            {entityIds.map((eid) => {
+              const section = byEntityTable[eid];
+              const rows = section?.rows ?? [];
+              const totals = section?.totals ?? null;
+              const isExpanded = expandedEntities.has(eid);
+              return (
+                <div key={eid} className="bg-white dark:bg-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => toggleEntity(eid)}
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                  >
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {eid === "_" ? "—" : eid}
+                    </span>
+                    <span className="text-slate-500 dark:text-slate-400">
+                      {rows.length} account{rows.length !== 1 ? "s" : ""}
+                    </span>
+                    <span className="text-slate-400" aria-hidden>
+                      {isExpanded ? "▼" : "▶"}
+                    </span>
+                  </button>
+                  {isExpanded && (
+                    <div className="overflow-x-auto border-t border-slate-200 dark:border-slate-700">
+                      <table className="w-full min-w-[900px] text-sm">
+                        <thead>
+                          <tr className="bg-slate-100 dark:bg-slate-700/50">
+                            <th className="px-3 py-2 text-left font-medium text-slate-700 dark:text-slate-300 sticky left-0 bg-slate-100 dark:bg-slate-700/50 z-10">
+                              Account
+                            </th>
+                            {COLUMNS.map((col) => (
+                              <th
+                                key={col.key}
+                                className={`px-3 py-2 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap ${col.className ?? ""}`}
+                              >
+                                {col.label}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((row) => (
+                            <tr
+                              key={row.id}
+                              className="border-t border-slate-200 dark:border-slate-700 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20"
+                            >
+                              <td className="px-3 py-2 sticky left-0 bg-white dark:bg-slate-800 z-10 font-medium text-slate-900 dark:text-white">
+                                <Link
+                                  to={`/reconciliations/${row.id}?evidence=1`}
+                                  className="text-sky-600 dark:text-sky-400 hover:underline"
+                                >
+                                  {row.prepaidAccount ?? "—"}
+                                </Link>
+                              </td>
+                              {COLUMNS.map((col) => (
+                                <td
+                                  key={col.key}
+                                  className={`px-3 py-2 text-slate-700 dark:text-slate-300 ${col.className ?? ""}`}
+                                >
+                                  {col.key === "status" ? (
+                                    <span
+                                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                                        statusColors[row.status] ??
+                                        "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300"
+                                      }`}
+                                    >
+                                      {row.status ?? "—"}
+                                    </span>
+                                  ) : (
+                                    fmt(row[col.key])
+                                  )}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                          {totals && (
+                            <tr className="border-t-2 border-slate-300 dark:border-slate-600 bg-amber-50 dark:bg-amber-900/20 font-semibold text-slate-900 dark:text-white">
+                              <td className="px-3 py-2 sticky left-0 bg-amber-50 dark:bg-amber-900/20 z-10">
+                                Total
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.beginIn2021Prepaid)}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.beginIn2022Prepaid)}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.beginIn2023Prepaid)}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.beginIn2024Prepaid)}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.beginIn2025Prepaid)}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.totalSubsystem)}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.glBalance)}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.difference)}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.reconEntries)}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {fmt(totals.finalDifference)}
+                              </td>
+                              <td className="px-3 py-2" />
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
