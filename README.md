@@ -37,6 +37,12 @@ App runs at `http://localhost:5173`. Vite proxies `/api` to `http://localhost:40
 
 **Login**: Use `admin@example.com` / `Admin123!`.
 
+### Deploy frontend to Vercel
+
+1. In Vercel: **Project Settings → General → Root Directory** → set to `frontend` (required for this monorepo so `vercel.json` and the build run from the frontend app).
+2. Connect the repo; Vercel will use `frontend/vercel.json` (build command, output `dist`, SPA rewrites).
+3. Redeploy after changing Root Directory so SPA routes (e.g. `/reconciliations/5`) serve `index.html` instead of 404.
+
 ## Features
 
 - **Auth & RBAC**: JWT login/refresh, roles (App Administrator, Admin, Entity User, Maker, Checker, Auditor), route guards, entity-scoped access
