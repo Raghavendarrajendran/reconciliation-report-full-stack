@@ -46,6 +46,10 @@ Deploy **frontend and API together** from the repo root (single project):
 3. **Environment variables** (Project Settings → Environment Variables): set `JWT_SECRET` (required), and optionally `CORS_ORIGIN` (e.g. your Vercel app URL), `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`. See root `.env.example`.
 4. Deploy. The app and API run on the same origin; no `VITE_API_URL` needed.
 
+**Live not working (local works):** Ensure **Root Directory** is empty (repo root). If it's set to `frontend`, only the SPA is deployed and `/api/*` doesn't exist, so requests can fail with network-style errors. Test the API: open `https://<your-app>.vercel.app/api/health` — you should see `{"status":"ok",...}`. Set `JWT_SECRET` (and optionally `CORS_ORIGIN`) in Vercel → Project Settings → Environment Variables.
+
+**"The page could not be found" (NOT_FOUND):** (1) **Root Directory** — For full-stack deploy leave it **empty**; for frontend-only set to `frontend`. (2) **Build** — In Vercel → Deployments → select the deployment → Build logs: ensure `npm run build` succeeds and no errors. (3) **Redeploy** — After changing Root Directory or `vercel.json`, trigger a new deployment.
+
 **Alternative – frontend-only deploy:** Set Root Directory to `frontend` and use `frontend/vercel.json`. Then run the backend elsewhere and set `VITE_API_URL` to the API base URL in the frontend project’s env.
 
 ## Features
