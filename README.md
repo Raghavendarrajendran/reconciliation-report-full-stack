@@ -37,11 +37,16 @@ App runs at `http://localhost:5173`. Vite proxies `/api` to `http://localhost:40
 
 **Login**: Use `admin@example.com` / `Admin123!`.
 
-### Deploy frontend to Vercel
+### Deploy entire app to Vercel (recommended)
 
-1. In Vercel: **Project Settings → General → Root Directory** → set to `frontend` (required for this monorepo so `vercel.json` and the build run from the frontend app).
-2. Connect the repo; Vercel will use `frontend/vercel.json` (build command, output `dist`, SPA rewrites).
-3. Redeploy after changing Root Directory so SPA routes (e.g. `/reconciliations/5`) serve `index.html` instead of 404.
+Deploy **frontend and API together** from the repo root (single project):
+
+1. In Vercel: **Import** this repo. **Do not** set a Root Directory (leave at repo root).
+2. Vercel will use the root `vercel.json`: builds frontend (`npm run build` → `frontend/dist`), serves `/api/*` via the Express app in `api/`, and SPA fallback for all other routes.
+3. **Environment variables** (Project Settings → Environment Variables): set `JWT_SECRET` (required), and optionally `CORS_ORIGIN` (e.g. your Vercel app URL), `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`. See root `.env.example`.
+4. Deploy. The app and API run on the same origin; no `VITE_API_URL` needed.
+
+**Alternative – frontend-only deploy:** Set Root Directory to `frontend` and use `frontend/vercel.json`. Then run the backend elsewhere and set `VITE_API_URL` to the API base URL in the frontend project’s env.
 
 ## Features
 

@@ -1,4 +1,5 @@
-const API_BASE = "/api";
+/** Same-origin on Vercel single deploy; set VITE_API_URL when frontend and API are separate. */
+const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
 function getToken() {
   return localStorage.getItem("accessToken");

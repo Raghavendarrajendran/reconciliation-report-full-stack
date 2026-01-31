@@ -1,0 +1,4 @@
+# Root env (Vercel uses dashboard env vars)
+.env
+.env.local
+.env.*.local
